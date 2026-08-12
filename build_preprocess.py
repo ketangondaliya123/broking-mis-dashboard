@@ -1,7 +1,9 @@
+import gc
 import json
 import math
 from pathlib import Path
 
+import openpyxl
 import pandas as pd
 
 
@@ -17,7 +19,7 @@ GROUPS = ["MSFL", "MSFL-Sharing", "Arbitrage", "P-Sec"]
 
 
 def clean_text(v):
-    if pd.isna(v):
+    if pd.isna(v) or v is None:
         return ""
     return str(v).strip()
 
@@ -26,9 +28,27 @@ def clean_num(s):
     return pd.to_numeric(s, errors="coerce").fillna(0.0)
 
 
+def read_sheet_fast(wb, sheet_name):
+    if sheet_name not in wb.sheetnames:
+        return pd.DataFrame()
+    ws = wb[sheet_name]
+    rows_iter = ws.iter_rows(values_only=True)
+    try:
+        raw_header = next(rows_iter)
+    except StopIteration:
+        return pd.DataFrame()
+    header = [str(c).replace("\n", " ").strip() if c is not None else "" for c in raw_header]
+    data = [r for r in rows_iter if any(x is not None for x in r)]
+    df = pd.DataFrame(data, columns=header)
+    return df
+
+
 def read_source(path):
-    ch = pd.read_excel(path, sheet_name="Channelwise")
-    cl = pd.read_excel(path, sheet_name="Clientwise")
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    ch = read_sheet_fast(wb, "Channelwise")
+    cl = read_sheet_fast(wb, "Clientwise")
+    wb.close()
+    gc.collect()
 
     ch.columns = [str(c).replace("\n", " ").strip() for c in ch.columns]
     cl.columns = [str(c).replace("\n", " ").strip() for c in cl.columns]
@@ -112,6 +132,7 @@ def read_source(path):
     primary = primary[["Parent Branch Code", "Client Code", "Client Name", "City", "Channel ID", "Channel Name", "Group", "Channel Type", "State", "Turnover", "Gross Brokerage", "Yield", "Is House Account"]]
     primary = primary.sort_values(["Parent Branch Code", "Client Code", "Client Name"], kind="stable").reset_index(drop=True)
 
+    gc.collect()
     return ch, primary, source_ch, source_cl
 
 

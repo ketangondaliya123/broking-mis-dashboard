@@ -329,6 +329,11 @@ def process_files():
         processing_state["progress"] = 90
 
         dashboard_html_path.write_text(html, encoding="utf-8")
+        with gzip.open(dashboard_gz_path, "wb", compresslevel=9) as f:
+            f.write(html.encode("utf-8"))
+
+        del payload, html
+        gc.collect()
 
         processing_state = {"status": "done", "step": "Complete!", "error": None, "progress": 100}
 
