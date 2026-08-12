@@ -186,7 +186,7 @@ td.house-flag{{background:var(--red-bg);color:var(--red);font-weight:600;font-si
     <h1>Broking MIS Dashboard</h1>
     <div class="subtitle">Marwadi Shares and Finance Ltd. &mdash; {new_short} vs {fy_label} Comparative Analytics</div>
   </div>
-  <a href="/" class="btn-upload" title="Upload new period files to regenerate the dashboard">
+  <a href="/?upload=1" class="btn-upload" title="Upload new period files to regenerate the dashboard">
     <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
     Upload New Files
   </a>

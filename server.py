@@ -351,7 +351,7 @@ def status():
     return jsonify(processing_state)
 
 
-UPLOAD_BUTTON_HTML = '''<a href="/" class="btn-upload" title="Upload new period files to regenerate the dashboard" style="display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#C9A227 0%,#D4A832 100%);color:#10253F;border:none;padding:.6rem 1.2rem;border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;letter-spacing:.03em;text-decoration:none;box-shadow:0 2px 10px rgba(201,162,39,.35);white-space:nowrap;margin-left:auto;flex-shrink:0">
+UPLOAD_BUTTON_HTML = '''<a href="/?upload=1" class="btn-upload" title="Upload new period files to regenerate the dashboard" style="display:inline-flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#C9A227 0%,#D4A832 100%);color:#10253F;border:none;padding:.6rem 1.2rem;border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;letter-spacing:.03em;text-decoration:none;box-shadow:0 2px 10px rgba(201,162,39,.35);white-space:nowrap;margin-left:auto;flex-shrink:0">
     <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
     Upload New Files
   </a>'''
