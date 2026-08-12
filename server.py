@@ -273,15 +273,16 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 @app.route("/")
 def index():
-    # If request has ?upload=1, show upload page anyway
-    if request.args.get("upload") != "1":
+    # On Cloud (Render), redirect directly to /dashboard unless ?upload=1 is specified
+    is_cloud = bool(os.environ.get("RENDER"))
+    if is_cloud and request.args.get("upload") != "1":
         if dashboard_html_path.exists() or dashboard_gz_path.exists():
             return redirect("/dashboard")
 
     page = UPLOAD_PAGE
     # Show link to previous dashboard if it exists
     if dashboard_html_path.exists() or dashboard_gz_path.exists():
-        link = '<div class="prev-link"><a href="/dashboard">View previously generated dashboard →</a></div>'
+        link = '<div class="prev-link"><a href="/dashboard">View generated dashboard →</a></div>'
     else:
         link = ""
     page = page.replace("PREV_LINK_PLACEHOLDER", link)
@@ -384,6 +385,24 @@ def dashboard():
         return response
 
     return redirect("/")
+
+
+@app.route("/publish", methods=["POST"])
+def publish():
+    import subprocess
+    try:
+        if dashboard_html_path.exists():
+            data = dashboard_html_path.read_bytes()
+            with gzip.open(dashboard_gz_path, "wb", compresslevel=9) as f:
+                f.write(data)
+
+        subprocess.run(["git", "add", "outputs/dashboard.html.gz"], cwd=str(ROOT), check=True)
+        subprocess.run(["git", "commit", "-m", "Update public dashboard data"], cwd=str(ROOT))
+        subprocess.run(["git", "push", "origin", "master"], cwd=str(ROOT), check=True)
+
+        return jsonify({"success": True, "message": "Successfully published! Public website will update in ~1 minute."})
+    except Exception as e:
+        return jsonify({"error": f"Publish failed: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
