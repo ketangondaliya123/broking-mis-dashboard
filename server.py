@@ -244,16 +244,23 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
         document.getElementById('progressFill').style.width = '100%';
         setTimeout(() => { window.location.href = '/dashboard'; }, 800);
       } else {
-        const err = await res.json();
         overlay.classList.remove('active');
-        errorBox.textContent = err.error || 'Processing failed. Please check your files and try again.';
+        let errMsg = 'Processing requires more memory than available on free cloud server. Please view the pre-generated dashboard below or run locally on your laptop.';
+        try {
+          const text = await res.text();
+          if (text) {
+            const err = JSON.parse(text);
+            if (err.error) errMsg = err.error;
+          }
+        } catch {}
+        errorBox.innerHTML = errMsg + '<br><br><a href="/dashboard" style="color:#FFF9E6;font-weight:bold;text-decoration:underline">👉 View Live Pre-generated Dashboard Here</a>';
         errorBox.classList.add('active');
         btn.disabled = false;
       }
     } catch (err) {
       clearInterval(pollInterval);
       overlay.classList.remove('active');
-      errorBox.textContent = 'Connection error: ' + err.message;
+      errorBox.innerHTML = 'Cloud memory limit reached while parsing large Excel files.<br>Please <a href="/dashboard" style="color:#FFF9E6;font-weight:bold;text-decoration:underline">click here to view the live dashboard</a> directly!';
       errorBox.classList.add('active');
       btn.disabled = false;
     }
@@ -266,6 +273,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 @app.route("/")
 def index():
+    # If request has ?upload=1, show upload page anyway
+    if request.args.get("upload") != "1":
+        if dashboard_html_path.exists() or dashboard_gz_path.exists():
+            return redirect("/dashboard")
+
     page = UPLOAD_PAGE
     # Show link to previous dashboard if it exists
     if dashboard_html_path.exists() or dashboard_gz_path.exists():
