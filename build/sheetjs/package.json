@@ -1,0 +1,7 @@
+{
+  "name": "mis-dashboard-sheetjs",
+  "private": true,
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

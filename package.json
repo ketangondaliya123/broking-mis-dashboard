@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "python build_preprocess.py && python build_xlsx_fallback.py && python build_dashboard.py",
+    "dev": "python server.py"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

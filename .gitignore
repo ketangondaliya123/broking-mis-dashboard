@@ -1,0 +1,23 @@
+# Large data files — DO NOT upload to GitHub
+*.xlsx
+*.xls
+build/data*.json
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+node_modules/
+.pnpm-store/
+package-lock.json
+
+# Uploads
+uploads/
+
+# OS files
+Thumbs.db
+.DS_Store
