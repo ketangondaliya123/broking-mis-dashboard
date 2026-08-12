@@ -2,7 +2,9 @@
 *.xlsx
 *.xls
 build/data*.json
-outputs/
+outputs/*.html
+outputs/*.xlsx
+outputs/*.js
 
 # Python
 __pycache__/
@@ -21,3 +23,5 @@ uploads/
 # OS files
 Thumbs.db
 .DS_Store
+*.zip
+_compress.py

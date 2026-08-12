@@ -7,6 +7,7 @@ Flask app that provides:
   - GET /dashboard  Serves the generated dashboard HTML
   - GET /status     SSE endpoint for processing progress
 """
+import gzip
 import json
 import os
 import sys
@@ -31,6 +32,7 @@ app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB max upload
 # Processing state
 processing_state = {"status": "idle", "step": "", "error": None, "progress": 0}
 dashboard_html_path = ROOT / "outputs" / "Broking_MIS_Dashboard_Latest.html"
+dashboard_gz_path = ROOT / "outputs" / "dashboard.html.gz"
 
 
 UPLOAD_PAGE = """<!DOCTYPE html>
@@ -266,7 +268,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 def index():
     page = UPLOAD_PAGE
     # Show link to previous dashboard if it exists
-    if dashboard_html_path.exists():
+    if dashboard_html_path.exists() or dashboard_gz_path.exists():
         link = '<div class="prev-link"><a href="/dashboard">View previously generated dashboard →</a></div>'
     else:
         link = ""
@@ -347,16 +349,24 @@ UPLOAD_BUTTON_STYLE = '<style>.site-header{display:flex!important;justify-conten
 
 @app.route("/dashboard")
 def dashboard():
-    if not dashboard_html_path.exists():
-        return redirect("/")
-    html = dashboard_html_path.read_text(encoding="utf-8")
-    # Always inject the upload button into the header if not already present
-    if "btn-upload" not in html:
-        # Inject style fix for header flexbox
-        html = html.replace("</head>", UPLOAD_BUTTON_STYLE + "\n</head>", 1)
-        # Inject button before </header>
-        html = html.replace("</header>", UPLOAD_BUTTON_HTML + "\n</header>", 1)
-    return html
+    # Try serving the full HTML file first (local development)
+    if dashboard_html_path.exists():
+        html = dashboard_html_path.read_text(encoding="utf-8")
+        # Always inject the upload button into the header if not already present
+        if "btn-upload" not in html:
+            html = html.replace("</head>", UPLOAD_BUTTON_STYLE + "\n</head>", 1)
+            html = html.replace("</header>", UPLOAD_BUTTON_HTML + "\n</header>", 1)
+        return html
+
+    # Fall back to compressed .gz file (cloud deployment)
+    if dashboard_gz_path.exists():
+        gz_data = dashboard_gz_path.read_bytes()
+        response = Response(gz_data, mimetype="text/html")
+        response.headers["Content-Encoding"] = "gzip"
+        response.headers["Cache-Control"] = "public, max-age=3600"
+        return response
+
+    return redirect("/")
 
 
 if __name__ == "__main__":
